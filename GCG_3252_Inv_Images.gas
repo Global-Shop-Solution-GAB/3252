@@ -1,0 +1,299 @@
+Program.Sub.ScreenSU.Start
+gui.SS_Form1..create
+gui.SS_Form1..caption("")
+gui.SS_Form1..size(6945,1810)
+gui.SS_Form1..position(0,0)
+gui.SS_Form1..event(unload,Unload)
+gui.SS_Form1..alwaysontop(False)
+gui.SS_Form1..fontname("Arial")
+gui.SS_Form1..fontsize(8)
+gui.SS_Form1..forecolor(0)
+gui.SS_Form1..fontstyle(,,,,)
+gui.SS_Form1..BackColor(-2147483633)
+gui.SS_Form1..controlbox(True)
+gui.SS_Form1..maxbutton(False)
+gui.SS_Form1..minbutton(False)
+gui.SS_Form1..mousepointer(0)
+gui.SS_Form1..moveable(True)
+gui.SS_Form1..sizeable(False)
+gui.SS_Form1..ShowInTaskBar(True)
+gui.SS_Form1..titlebar(True)
+gui.SS_Form1.lbl_txtPart.create(label,"Part Number",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.txtPart.create(textbox,"",True,2175,330,0,100,335,True,0,Arial,8,16777215,1)
+gui.SS_Form1.txtPart.maxLength(20)
+gui.SS_Form1.cmd_txtPart.create(button)
+gui.SS_Form1.cmd_txtPart.caption("^")
+gui.SS_Form1.cmd_txtPart.visible(True)
+gui.SS_Form1.cmd_txtPart.size(330,330)
+gui.SS_Form1.cmd_txtPart.zorder(0)
+gui.SS_Form1.cmd_txtPart.position(2345,335)
+gui.SS_Form1.cmd_txtPart.enabled(True)
+gui.SS_Form1.cmd_txtPart.fontname("Arial")
+gui.SS_Form1.cmd_txtPart.fontsize(8)
+gui.SS_Form1.cmd_txtPart.event(click,cmd_txtpart_click)
+gui.SS_Form1.lbl_txtPath.create(label,"File Path",True,1800,200,1,2875,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.txtPath.create(textbox,"",True,3150,330,0,2875,335,True,0,Arial,8,16777215,1)
+gui.SS_Form1.cmd_txtPath.create(button)
+gui.SS_Form1.cmd_txtPath.caption("^")
+gui.SS_Form1.cmd_txtPath.visible(True)
+gui.SS_Form1.cmd_txtPath.size(330,330)
+gui.SS_Form1.cmd_txtPath.zorder(0)
+gui.SS_Form1.cmd_txtPath.position(6095,335)
+gui.SS_Form1.cmd_txtPath.enabled(True)
+gui.SS_Form1.cmd_txtPath.fontname("Arial")
+gui.SS_Form1.cmd_txtPath.fontsize(8)
+gui.SS_Form1.cmd_txtPath.event(click,cmd_txtpath_click)
+gui.SS_Form1.cmdSave.create(button)
+gui.SS_Form1.cmdSave.caption("Save")
+gui.SS_Form1.cmdSave.visible(True)
+gui.SS_Form1.cmdSave.size(1000,360)
+gui.SS_Form1.cmdSave.zorder(0)
+gui.SS_Form1.cmdSave.position(100,835)
+gui.SS_Form1.cmdSave.enabled(True)
+gui.SS_Form1.cmdSave.fontname("Arial")
+gui.SS_Form1.cmdSave.fontsize(8)
+gui.SS_Form1.cmdSave.event(click,cmdsave_click)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.bInventory.Declare(Boolean,False)
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,10120)
+	V.Passed.000068.Set("No Image")
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,14045)
+	V.Passed.000252.Set("No Image")
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,10210)
+	F.Intrinsic.Control.CallSub(Inventory_script1)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.If(V.Caller.Hook,=,14070)
+		F.Intrinsic.Control.CallSub(Sd_script1)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,14050)
+	F.Intrinsic.Control.CallSub(Supplydemand)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.ElseIf(V.Caller.Hook,=,10125)
+	F.Intrinsic.Control.CallSub(Inventory)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.Else
+	Gui.SS_Form1..Show
+F.Intrinsic.Control.EndIf
+
+Program.Sub.Main.End
+
+Program.Sub.Unload.Start
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.End
+
+Program.Sub.Unload.End
+
+program.sub.cmd_txtpart_click.start
+V.Local.sRet.Declare(String)
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sTemp.Declare(String)
+
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+F.Intrinsic.UI.Browser(100,"",V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet,=,"***CANCEL***")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.Else
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	F.Intrinsic.String.RPad(V.Local.sRet(0)," ",17,V.Local.sPart)
+	F.Intrinsic.String.RPad(V.Local.sRet(1)," ",3,V.Local.sRev)
+	F.Intrinsic.String.Concat(V.Local.sPart,V.Local.sRev,V.Local.sTemp)
+	Gui.SS_Form1.txtPart.Text(V.Local.sTemp.Trim)
+F.Intrinsic.Control.EndIf
+
+program.sub.cmd_txtpart_click.end
+
+program.sub.cmd_txtpath_click.start
+V.Local.sFile.Declare(String)
+V.Local.sPath.Declare(String)
+
+F.Intrinsic.UI.ShowOpenFileDialog("","","",V.Local.sPath)
+F.Intrinsic.Control.If(V.Local.sPath,<>,"***CANCEL***")
+	Gui.SS_Form1.txtPath.Text(V.Local.sPath)
+F.Intrinsic.Control.EndIf
+
+program.sub.cmd_txtpath_click.end
+
+program.sub.cmdsave_click.start
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!txtPart.Text,=,"")
+	F.Intrinsic.UI.Msgbox("Please select a part.","Error")
+	Gui.SS_Form1.txtPart.SetFocus
+F.Intrinsic.Control.ElseIf(V.Screen.SS_Form1!txtPath.Text,=,"")
+	F.Intrinsic.UI.Msgbox("Please select a image.","Error")
+	Gui.SS_Form1.txtPath.SetFocus
+F.Intrinsic.Control.Else
+	F.Intrinsic.String.Concat("Select * From GCG_3252_INV_IMAGES Where PART = '",V.Screen.SS_Form1!txtPart.Text,"'",V.Local.sSQL)
+	F.ODBC.Connection!con.OpenRecordsetRW("rst",V.Local.sSQL)
+	F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,True)
+		F.ODBC.con!rst.AddNew
+		F.ODBC.con!rst.Set!PART(V.Screen.SS_Form1!txtPart.Text)
+		F.ODBC.con!rst.Set!PATH(V.Screen.SS_Form1!txtPath.Text)
+	F.Intrinsic.Control.Else
+		F.ODBC.con!rst.Set!PATH(V.Screen.SS_Form1!txtPath.Text)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rst.Update
+	F.ODBC.con!rst.Close
+F.Intrinsic.Control.EndIf
+
+Gui.SS_Form1.txtPart.Text("")
+Gui.SS_Form1.txtPath.Text("")
+
+program.sub.cmdsave_click.end
+
+Program.Sub.Inventory.Start
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+
+V.Local.sPart.Set(V.Passed.000007)
+V.Local.sRev.Set(V.Passed.000008)
+F.Intrinsic.String.RPad(V.Local.sPart.Trim," ",17,V.Local.sPart)
+F.Intrinsic.String.RPad(V.Local.sRev.Trim," ",3,V.Local.sRev)
+F.Intrinsic.String.Concat(V.Local.sPart,V.Local.sRev,V.Local.sRet)
+F.Intrinsic.String.Concat("Select * From GCG_3252_INV_IMAGES Where Part = '",V.Local.sRet,"'",V.Local.sSQL)
+F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+	V.Passed.000068.Set("View Image")
+	Function.Intrinsic.Variable.SetProperty("000068","BC",V.Color.Green)
+F.Intrinsic.Control.Else
+		V.Passed.000068.Set("No Image")
+		Function.Intrinsic.Variable.SetProperty("000068","BC","DEFAULT")
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+
+Program.Sub.Inventory.End
+
+Program.Sub.SupplyDemand.Start
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+
+V.Local.sPart.Set(V.Passed.000003)
+V.Local.sRev.Set(V.Passed.000099)
+F.Intrinsic.String.RPad(V.Local.sPart.Trim," ",17,V.Local.sPart)
+F.Intrinsic.String.RPad(V.Local.sRev.Trim," ",3,V.Local.sRev)
+F.Intrinsic.String.Concat(V.Local.sPart,V.Local.sRev,V.Local.sRet)
+F.Intrinsic.String.Concat("Select * From GCG_3252_INV_IMAGES Where Part = '",V.Local.sRet,"'",V.Local.sSQL)
+F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+	V.Passed.000252.Set("View Image")
+	F.Intrinsic.Variable.SetProperty("000252","BC",V.Color.Green)
+	'F.Intrinsic.UI.ChangeCallerProperty("000068","BC",V.Color.Green)
+F.Intrinsic.Control.Else
+	V.Passed.000252.Set("No Image")
+	Function.Intrinsic.Variable.SetProperty("000252","BC","DEFAULT")
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+Program.Sub.SupplyDemand.End
+
+Program.Sub.Inventory_script1.Start
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sPath.Declare(String)
+V.Local.bPath.Declare(Boolean)
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+V.Local.sPart.Set(V.Passed.000007)
+V.Local.sRev.Set(V.Passed.000008)
+F.Intrinsic.String.RPad(V.Local.sPart.Trim," ",17,V.Local.sPart)
+F.Intrinsic.String.RPad(V.Local.sRev.Trim," ",3,V.Local.sRev)
+F.Intrinsic.String.Concat(V.Local.sPart,V.Local.sRev,V.Local.sRet)
+F.Intrinsic.String.Concat("Select * From GCG_3252_INV_IMAGES Where Part = '",V.Local.sRet,"'",V.Local.sSQL)
+F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+	V.Local.sPart.Set(V.ODBC.con!rst.FieldValTrim!PATH)
+	F.Intrinsic.File.Exists(V.Local.sPart,V.Local.bPath)
+	F.Intrinsic.Control.If(V.Local.bPath,=,True)
+		F.Intrinsic.task.ShellExec(V.Caller.Handle,"OPEN",V.ODBC.con!rst.FieldValTrim!PATH,"","",5)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.UI.Msgbox("Doc does not exist in path specified.","File Error")
+	F.Intrinsic.Control.Endif
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+
+
+Program.Sub.Inventory_script1.End
+
+Program.Sub.SD_script1.Start
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.bPath.Declare(Boolean)
+V.Local.sPath.Declare(String)
+
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+
+V.Local.sPart.Set(V.Passed.000003)
+V.Local.sRev.Set(V.Passed.000099)
+F.Intrinsic.String.RPad(V.Local.sPart.Trim," ",17,V.Local.sPart)
+F.Intrinsic.String.RPad(V.Local.sRev.Trim," ",3,V.Local.sRev)
+F.Intrinsic.String.Concat(V.Local.sPart,V.Local.sRev,V.Local.sRet)
+F.Intrinsic.String.Concat("Select * From GCG_3252_INV_IMAGES Where Part = '",V.Local.sRet,"'",V.Local.sSQL)
+F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+	V.Local.sPart.Set(V.ODBC.con!rst.FieldValTrim!PATH)
+	F.Intrinsic.File.Exists(V.Local.sPath,V.Local.bPath)
+	F.Intrinsic.Control.If(V.Local.bPath,=,True)
+		F.Intrinsic.task.ShellExec(V.Caller.Handle,"OPEN",V.ODBC.con!rst.FieldValTrim!PATH,"","",5)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.UI.Msgbox("Doc does not exist in path specified.","File Error")
+	F.Intrinsic.Control.Endif
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+Program.Sub.SD_script1.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_Part_Photo$}$ERIC$}$2/2/2012
+${$3$}$0$}$$}$-1$}$-1$}$$}$1/1/1900$}$Quote Number 3301
+Revision Number 0
+Customer Name GKD-USA, INC.
+
+Program.Sub.Comments.End
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::
+SS_Form1.CTRL{{NAME::txtPart\\TYPE::2\\CAPTION::Part Number\\GROUP::1\\BROWSER::1\\SIZE::1
+SS_Form1.CTRL{{NAME::txtPath\\TYPE::2\\CAPTION::File Path\\GROUP::1\\BROWSER::1\\SIZE::1
+SS_Form1.CTRL{{NAME::cmdSave\\TYPE::5\\CAPTION::Save\\GROUP::-1\\BROWSER::0\\SIZE::1
+
+Program.Sub.ScreenSS.End
+
